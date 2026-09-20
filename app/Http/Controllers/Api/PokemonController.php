@@ -35,21 +35,22 @@ class PokemonController extends Controller
         ]);
     }
     // Función 1: Bloquea el Pokémon en el mercado
-    public function draft($id)
+    public function draft(Request $request, $id)
     {
-        $pokemon = Pokemon::find($id); // o el modelo que uses en MongoDB
+        $pokemon = Pokemon::find($id);
 
         if (!$pokemon) {
             return response()->json(['error' => 'Pokémon no encontrado'], 404);
         }
 
         $pokemon->drafteado = true;
+        // NUEVO: Guardamos el nombre del jugador que mandó el frontend
+        $pokemon->entrenador = $request->input('entrenador');
         $pokemon->save();
 
         return response()->json(['message' => 'Pokémon bloqueado exitosamente', 'pokemon' => $pokemon]);
     }
 
-    // Función 2: Actualiza las estadísticas individuales
     public function updateStats(Request $request, $id)
     {
         $pokemon = Pokemon::find($id);
