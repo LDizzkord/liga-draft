@@ -8,5 +8,15 @@ class Pokemon extends Model
 {
     protected $connection = 'mongodb';
     protected $collection = 'pokemons'; // Para el driver de MongoDB
-    protected $table = 'pokemons';      // Para forzar el estándar de Laravel
-}
+    protected $table = 'pokemons';
+    protected $fillable = [
+        'name',
+        'precio',
+        'tier',
+        'drafteado',
+        'performance',
+        'estrategia',
+        'en_banquillo',
+        'entrenador' // <-- ¡Este es el campo vital que faltaba!
+    ];
+}// Para forzar el estándar de Laravel
