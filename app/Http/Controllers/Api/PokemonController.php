@@ -58,21 +58,35 @@ class PokemonController extends Controller
             return response()->json(['error' => 'Pokémon no encontrado'], 404);
         }
 
-        // Extraemos el arreglo de performance actual
+        // 1. Extraemos los datos que envía Angular
+        $jugados = $request->input('jugados', 0);
+        $derribos = $request->input('derribos', 0);
+        $debilitado = $request->input('debilitado', 0);
+
+        // 2. Actualizamos el arreglo de performance
         $perf = $pokemon->performance ?? [
             'partidos_jugados' => 0,
             'derribos_totales' => 0,
             'veces_debilitado' => 0
         ];
 
-        // Sumamos las nuevas estadísticas
-        $perf['partidos_jugados'] += $request->input('jugados', 0);
-        $perf['derribos_totales'] += $request->input('derribos', 0);
-        $perf['veces_debilitado'] += $request->input('debilitado', 0);
-
+        $perf['partidos_jugados'] += $jugados;
+        $perf['derribos_totales'] += $derribos;
+        $perf['veces_debilitado'] += $debilitado;
         $pokemon->performance = $perf;
+
+        // 3. LA MAGIA DEL MERCADO DINÁMICO
+        $valorPorKill = 10;   // Sube $10 por matar
+        $castigoPorMuerte = 5; // Baja $5 por morir
+
+        $fluctuacion = ($derribos * $valorPorKill) - ($debilitado * $castigoPorMuerte);
+        $nuevoPrecio = $pokemon->precio + $fluctuacion;
+
+        // Evitamos que el precio baje de $10
+        $pokemon->precio = max(10, $nuevoPrecio);
+
         $pokemon->save();
 
-        return response()->json(['message' => 'Estadísticas actualizadas', 'pokemon' => $pokemon]);
+        return response()->json(['message' => 'Estadísticas y precio actualizados', 'pokemon' => $pokemon]);
     }
 }
