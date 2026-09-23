@@ -77,6 +77,11 @@ class LeagueController extends Controller
         }
 
         $entrenador->dinero_actual += $pokemon->precio;
+
+        $entrenador->equipo = collect($entrenador->equipo ?? [])
+            ->reject(fn($pokemonId) => (string) $pokemonId === (string) $pokemon->getKey())
+            ->values()
+            ->all();
         $entrenador->save();
 
         // Limpiamos los campos basándonos en cómo los bloqueaste en PokemonController

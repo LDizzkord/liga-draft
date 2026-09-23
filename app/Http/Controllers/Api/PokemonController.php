@@ -13,7 +13,9 @@ class PokemonController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => Pokemon::all() // <-- CORREGIDO: Pokemon en singular
+            'data' => Pokemon::all()->each(function (Pokemon $pokemon) {
+                $pokemon->drafteado = (bool) ($pokemon->drafteado ?? false);
+            })
         ]);
     }
 
@@ -47,6 +49,22 @@ class PokemonController extends Controller
         // NUEVO: Guardamos el nombre del jugador que mandó el frontend
         $pokemon->entrenador = $request->input('entrenador');
         $pokemon->save();
+
+        if ($request->filled('entrenador_id')) {
+            $entrenador = \App\Models\Trainer::find($request->input('entrenador_id'));
+
+            if ($entrenador) {
+                $equipo = collect($entrenador->equipo ?? [])
+                    ->map(fn($pokemonId) => (string) $pokemonId)
+                    ->push((string) $pokemon->getKey())
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $entrenador->equipo = $equipo;
+                $entrenador->save();
+            }
+        }
 
         return response()->json(['message' => 'Pokémon bloqueado exitosamente', 'pokemon' => $pokemon]);
     }
