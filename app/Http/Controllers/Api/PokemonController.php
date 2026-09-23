@@ -45,12 +45,19 @@ class PokemonController extends Controller
             return response()->json(['error' => 'Pokémon no encontrado'], 404);
         }
 
-        $pokemon->drafteado = true;
-        // NUEVO: Guardamos el nombre del jugador que mandó el frontend
+        // 1. Leemos dinámicamente si es compra (true) o venta (false). Si Angular no lo envía, asume true.
+        $pokemon->drafteado = $request->input('drafteado', true);
+
+        // 2. Si Angular manda el estado del banquillo al vender, lo limpiamos también.
+        if ($request->has('en_banquillo')) {
+            $pokemon->en_banquillo = $request->input('en_banquillo');
+        }
+
         $pokemon->entrenador = $request->input('entrenador');
         $pokemon->save();
 
-        if ($request->filled('entrenador_id')) {
+        // 3. Manejo del equipo del entrenador (Solo para compras)
+        if ($request->filled('entrenador_id') && $pokemon->drafteado === true) {
             $entrenador = \App\Models\Trainer::find($request->input('entrenador_id'));
 
             if ($entrenador) {
@@ -66,7 +73,7 @@ class PokemonController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Pokémon bloqueado exitosamente', 'pokemon' => $pokemon]);
+        return response()->json(['message' => 'Estado de draft actualizado exitosamente', 'pokemon' => $pokemon]);
     }
 
     public function updateStats(Request $request, $id)
